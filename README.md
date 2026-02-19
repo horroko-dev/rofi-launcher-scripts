@@ -52,10 +52,10 @@ You can change the active repository using the smart launcher's "sr (select repo
 The main entry point for all functionality. Accessible via Super+Enter (if configured in niri).
 
 Menu options:
-- **gi** - Show my GitHub issues (issues assigned to you)
-- **prc** - Show created PRs (pull requests you created)
-- **prr** - Show review requests (PRs requesting your review)
-- **sr** - Select repository (switch active repository)
+- **ghi** - Show my GitHub issues (issues assigned to you)
+- **ghprc** - Show created PRs (pull requests you created)
+- **ghprr** - Show review requests (PRs requesting your review)
+- **ghsr** - Select repository (switch active repository)
 
 ### Individual Scripts
 
