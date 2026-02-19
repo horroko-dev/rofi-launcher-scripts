@@ -106,11 +106,19 @@ Refer to your window manager's documentation for binding custom commands to keyb
 - Opens selected PR in browser
 
 ### GitHub Notifications (`rofi-notifications`)
-- Fetches all unread notifications from your GitHub inbox
-- Displays notification reason and title (e.g., "[review_requested] PR title")
-- Automatically marks notification as read when opened
-- Opens the notification URL in your default browser
-- Supports all notification reasons: review requests, mentions, comments, assignments, etc.
+- Fetches all unread notifications from your GitHub inbox across all repositories
+- Displays notification reason and title (e.g., `[review_requested] PR title`)
+- Converts API URLs to GitHub web URLs automatically
+- When you select a notification:
+  - It opens the issue/PR in your default browser
+  - Automatically marks the notification as read
+- Supports all notification reasons:
+  - `review_requested` - Review request on PR
+  - `mention` - You were mentioned
+  - `assign` - You were assigned
+  - `comment` - Someone commented on an issue/PR you're subscribed to
+  - `author` - You created the issue/PR
+  - `subscribed` - Updates on issues/PRs you subscribed to
 
 ### Repository Selection (`rofi-select-repo`)
 - Lists all repositories you have access to (personal + organization repos)
