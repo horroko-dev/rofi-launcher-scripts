@@ -1,29 +1,51 @@
 #!/bin/bash
 
-# Fetch all notifications
-notifications=$(gh api notifications --paginate -t '{{range .}}{{.id}}|[{{.reason}}] {{.subject.title}}|{{.subject.url}}{{"\n"}}{{end}}')
+# Fetch all notifications and construct proper GitHub URLs
+notifications=$(gh api notifications --paginate | jq -r '.[] |
+  (.subject.url | gsub("https://api.github.com/repos/"; "https://github.com/") | gsub("/pulls/"; "/pull/")) as $url |
+  "\(.id)|\("[" + .reason + "] " + .subject.title)|\($url)"')
 
 if [[ -z "$notifications" ]]; then
     echo "No notifications" | rofi -dmenu -p "Notifications"
     exit 0
 fi
 
-# Format for display (remove IDs, show reason and title)
-display=$(echo "$notifications" | awk -F'|' '{print "[" $2 "] " $3}')
+# Create display with just the notification info (without ID, but keep it for matching)
+# Format: [reason] title
+declare -a ids
+declare -a urls
+declare -a display_items
+
+i=0
+while IFS='|' read -r id reason_title url; do
+    if [[ -n "$id" ]]; then
+        ids[$i]="$id"
+        urls[$i]="$url"
+        display_items[$i]="$reason_title"
+        ((i++))
+    fi
+done <<< "$notifications"
 
 # Show notifications in rofi and get selection
-selected=$(echo "$display" | rofi -dmenu -p "Notifications")
+selected=$(printf '%s\n' "${display_items[@]}" | rofi -dmenu -p "Notifications")
 
 if [[ -z "$selected" ]]; then
     exit 0
 fi
 
-# Find the matching notification entry
-notification_entry=$(echo "$notifications" | grep "$selected" | head -1)
+# Find the matching index
+for i in "${!display_items[@]}"; do
+    if [[ "${display_items[$i]}" == "$selected" ]]; then
+        notification_id="${ids[$i]}"
+        notification_url="${urls[$i]}"
+        break
+    fi
+done
 
-# Extract URL and ID
-notification_id=$(echo "$notification_entry" | cut -d'|' -f1)
-notification_url=$(echo "$notification_entry" | cut -d'|' -f3)
+if [[ -z "$notification_url" ]]; then
+    echo "Error: Could not find notification URL" | rofi -dmenu -p "Error"
+    exit 1
+fi
 
 # Mark notification as read
 gh api "notifications/${notification_id}" -X PATCH -f status=read 2>/dev/null
