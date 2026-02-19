@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Fetch all notifications
+notifications=$(gh api notifications --paginate -t '{{range .}}{{.id}}|[{{.reason}}] {{.subject.title}}|{{.subject.url}}{{"\n"}}{{end}}')
+
+if [[ -z "$notifications" ]]; then
+    echo "No notifications" | rofi -dmenu -p "Notifications"
+    exit 0
+fi
+
+# Format for display (remove IDs, show reason and title)
+display=$(echo "$notifications" | awk -F'|' '{print "[" $2 "] " $3}')
+
+# Show notifications in rofi and get selection
+selected=$(echo "$display" | rofi -dmenu -p "Notifications")
+
+if [[ -z "$selected" ]]; then
+    exit 0
+fi
+
+# Find the matching notification entry
+notification_entry=$(echo "$notifications" | grep "$selected" | head -1)
+
+# Extract URL and ID
+notification_id=$(echo "$notification_entry" | cut -d'|' -f1)
+notification_url=$(echo "$notification_entry" | cut -d'|' -f3)
+
+# Mark notification as read
+gh api "notifications/${notification_id}" -X PATCH -f status=read 2>/dev/null
+
+# Open the URL in the default browser
+xdg-open "$notification_url" 2>/dev/null

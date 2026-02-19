@@ -52,6 +52,7 @@ You can change the active repository using the smart launcher's "sr (select repo
 The main entry point for all functionality. Accessible via Super+Enter (if configured in niri).
 
 Menu options:
+- **ghn** - Show GitHub notifications (inbox notifications)
 - **ghi** - Show my GitHub issues (issues assigned to you)
 - **ghprc** - Show created PRs (pull requests you created)
 - **ghprr** - Show review requests (PRs requesting your review)
@@ -63,6 +64,7 @@ Each function can also be run directly:
 
 ```bash
 ./rofi-smart-launcher      # Main menu
+./rofi-notifications      # Show GitHub notifications
 ./rofi-git-issue          # Show assigned issues
 ./rofi-git-pr-created     # Show your PRs
 ./rofi-git-pr-review      # Show review requests
@@ -103,6 +105,13 @@ Refer to your window manager's documentation for binding custom commands to keyb
 - Searches across the configured repository
 - Opens selected PR in browser
 
+### GitHub Notifications (`rofi-notifications`)
+- Fetches all unread notifications from your GitHub inbox
+- Displays notification reason and title (e.g., "[review_requested] PR title")
+- Automatically marks notification as read when opened
+- Opens the notification URL in your default browser
+- Supports all notification reasons: review requests, mentions, comments, assignments, etc.
+
 ### Repository Selection (`rofi-select-repo`)
 - Lists all repositories you have access to (personal + organization repos)
 - Uses GitHub GraphQL API to fetch org repositories
@@ -132,4 +141,4 @@ chmod +x ~/.config/horroko-dev/rofi-launcher-scripts/*
 
 ## License
 
-This project is provided as-is for personal use.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -3,6 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 menu=$(cat <<EOF
+ghn (show github notifications)
 ghi (show my github issues)
 ghprc (created PRs)
 ghprr (review requests)
@@ -13,6 +14,9 @@ EOF
 selected=$(echo "$menu" | rofi -dmenu -p "Launcher" -sync)
 
 case "$selected" in
+    "ghn"*)
+        "$SCRIPT_DIR/rofi-notifications"
+        ;;
     "ghi"*)
         "$SCRIPT_DIR/rofi-git-issue"
         ;;
