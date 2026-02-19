@@ -1,0 +1,49 @@
+#!/bin/bash
+
+CONFIG_FILE="$HOME/.config/horroko-dev/rofi-git-issue.conf"
+
+# Fetch all accessible repositories (including organization repos)
+repos=$(gh search repos --owner "@me" --limit 1000 --json nameWithOwner --template '{{range .}}{{.nameWithOwner}}{{"\n"}}{{end}}')
+
+# Also add organization repositories
+org_repos=$(gh api graphql -f query='
+{
+  viewer {
+    repositories(first: 100) {
+      nodes {
+        nameWithOwner
+      }
+    }
+    organizations(first: 100) {
+      nodes {
+        repositories(first: 100) {
+          nodes {
+            nameWithOwner
+          }
+        }
+      }
+    }
+  }
+}' --template '{{range .data.viewer.repositories.nodes}}{{.nameWithOwner}}{{"\n"}}{{end}}{{range .data.viewer.organizations.nodes}}{{range .repositories.nodes}}{{.nameWithOwner}}{{"\n"}}{{end}}{{end}}' 2>/dev/null)
+
+# Combine and deduplicate
+repos=$(printf "%s\n%s\n" "$repos" "$org_repos" | grep -v '^$' | sort -u)
+
+if [[ -z "$repos" ]]; then
+    echo "No repositories found" | rofi -dmenu -p "Error"
+    exit 1
+fi
+
+# Show repositories in rofi and get selection
+selected=$(echo "$repos" | rofi -dmenu -p "Select Repository")
+
+if [[ -z "$selected" ]]; then
+    exit 0
+fi
+
+# Update config file with selected repository
+if [[ -f "$CONFIG_FILE" ]]; then
+    sed -i "s|^GITHUB_REPOSITORY=.*|GITHUB_REPOSITORY=\"$selected\"|" "$CONFIG_FILE"
+else
+    echo "GITHUB_REPOSITORY=\"$selected\"" > "$CONFIG_FILE"
+fi

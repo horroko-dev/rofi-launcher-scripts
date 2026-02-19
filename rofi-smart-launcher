@@ -1,0 +1,28 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+menu=$(cat <<EOF
+ghi (show my github issues)
+ghprc (created PRs)
+ghprr (review requests)
+ghsr (select repository)
+EOF
+)
+
+selected=$(echo "$menu" | rofi -dmenu -p "Launcher" -sync)
+
+case "$selected" in
+    "ghi"*)
+        "$SCRIPT_DIR/rofi-git-issue"
+        ;;
+    "ghprc"*)
+        "$SCRIPT_DIR/rofi-git-pr-created"
+        ;;
+    "ghprr"*)
+        "$SCRIPT_DIR/rofi-git-pr-review"
+        ;;
+    "ghsr"*)
+        "$SCRIPT_DIR/rofi-select-repo"
+        ;;
+esac

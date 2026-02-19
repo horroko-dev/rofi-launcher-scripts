@@ -1,0 +1,43 @@
+#!/bin/bash
+
+CONFIG_FILE="$HOME/.config/horroko-dev/rofi-git-issue.conf"
+
+# Load config
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Config file not found: $CONFIG_FILE" | rofi -dmenu -p "Error"
+    exit 1
+fi
+
+source "$CONFIG_FILE"
+
+if [[ -z "$GITHUB_REPOSITORY" ]]; then
+    echo "GITHUB_REPOSITORY not set in config" | rofi -dmenu -p "Error"
+    exit 1
+fi
+
+# Fetch issues assigned to the current user
+issues=$(gh issue list --repo "$GITHUB_REPOSITORY" --assignee "@me" --json number,title,url --template '{{range .}}#{{.number}} {{.title}}{{"\n"}}{{end}}')
+
+if [[ -z "$issues" ]]; then
+    echo "$GITHUB_REPOSITORY: No issues assigned to you" | rofi -dmenu -p "Issues"
+    exit 0
+fi
+
+# Add repository prefix to issues
+issues=$(echo "$issues" | sed "s|^|$GITHUB_REPOSITORY: |")
+
+# Show issues in rofi and get selection
+selected=$(echo "$issues" | rofi -dmenu -p "$GITHUB_REPOSITORY: Issues assigned to you")
+
+if [[ -z "$selected" ]]; then
+    exit 0
+fi
+
+# Extract issue number from selection (remove repository prefix)
+issue_number=$(echo "$selected" | sed "s|$GITHUB_REPOSITORY: ||" | awk '{print $1}' | sed 's/#//')
+
+# Get the full issue URL
+issue_url=$(gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" --json url --template '{{.url}}')
+
+# Open the issue in the default browser
+xdg-open "$issue_url" 2>/dev/null

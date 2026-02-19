@@ -1,0 +1,43 @@
+#!/bin/bash
+
+CONFIG_FILE="$HOME/.config/horroko-dev/rofi-git-issue.conf"
+
+# Load config
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Config file not found: $CONFIG_FILE" | rofi -dmenu -p "Error"
+    exit 1
+fi
+
+source "$CONFIG_FILE"
+
+if [[ -z "$GITHUB_REPOSITORY" ]]; then
+    echo "GITHUB_REPOSITORY not set in config" | rofi -dmenu -p "Error"
+    exit 1
+fi
+
+# Fetch PRs with review requests for the current user
+prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --search "review-requested:@me" --json number,title,url --template '{{range .}}#{{.number}} {{.title}}{{"\n"}}{{end}}')
+
+if [[ -z "$prs" ]]; then
+    echo "$GITHUB_REPOSITORY: No PRs requesting your review" | rofi -dmenu -p "Review Requests"
+    exit 0
+fi
+
+# Add repository prefix to PRs
+prs=$(echo "$prs" | sed "s|^|$GITHUB_REPOSITORY: |")
+
+# Show PRs in rofi and get selection
+selected=$(echo "$prs" | rofi -dmenu -p "$GITHUB_REPOSITORY: Review Requests")
+
+if [[ -z "$selected" ]]; then
+    exit 0
+fi
+
+# Extract PR number from selection (remove repository prefix)
+pr_number=$(echo "$selected" | sed "s|$GITHUB_REPOSITORY: ||" | awk '{print $1}' | sed 's/#//')
+
+# Get the full PR URL
+pr_url=$(gh pr view "$pr_number" --repo "$GITHUB_REPOSITORY" --json url --template '{{.url}}')
+
+# Open the PR in the default browser
+xdg-open "$pr_url" 2>/dev/null
